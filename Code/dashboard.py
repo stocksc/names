@@ -4,21 +4,20 @@ import numpy as np
 import os
 import altair as alt
 
-dir_data = "C:/Users/chris/Documents/Projects/Names/Data/clean/"
-
 #############
 # Data Prep #
 #############
 
-overall_data = pd.read_parquet(os.path.join(dir_data, 'name_overall_data.parquet'))
-year_data = pd.read_parquet(os.path.join(dir_data, 'name_year_data.parquet'))
+# dir_data = "C:/Users/chris/Documents/Projects/Names/Data/clean/"
+# overall_data = pd.read_parquet(os.path.join(dir_data, 'name_overall_data.parquet'))
+# year_data = pd.read_parquet(os.path.join(dir_data, 'name_year_data.parquet'))
+overall_data = pd.read_parquet("https://github.com/stocksc/names/blob/master/Data/clean/name_overall_data.parquet?raw=true")
+year_data = pd.read_parquet("https://github.com/stocksc/names/blob/master/Data/clean/name_year_data.parquet?raw=true")
 
 colors = {
     'Female': '#FF77B4',
     'Male': '#89CFF0'
 }
-
-# st.dataframe(year_data.loc[year_data['Year']==2023])
 
 #########
 # Title #
@@ -350,6 +349,3 @@ with col1:
     st.markdown(html_table, unsafe_allow_html=True)
 with col2:
     st.altair_chart(pie_chart)
-
-# s3 bucket
-# odds of classmate
