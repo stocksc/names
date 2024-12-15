@@ -163,7 +163,7 @@ for sex in ["Female", "Male"]:
 
 # Display
 st.markdown(f"""
-<table style='width:65%; table-layout:fixed;'>
+<table style='width:100%; table-layout:fixed;'>
     <tr>
         <th style='width:50%;'></th>
         <th style='width:25%; color:{colors["Female"]}; text-align: center;'>Female</th>
