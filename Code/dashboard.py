@@ -153,7 +153,7 @@ for sex in ["Female", "Male"]:
     # Growth in last 3 years
     rate_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Rate_{sex}'].values[0]
     rate_past = chosen_year.loc[chosen_year['Year'] == 2020, f'Rate_{sex}'].values[0]
-    if pd.isna(rate_past):
+    if rate_past == 0:
         growth[sex] = "N/A"
     else:
         growth[sex] = round((rate_now - rate_past) / rate_past * 100, 1)
