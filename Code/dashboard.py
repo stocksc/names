@@ -11,6 +11,7 @@ import altair as alt
 # dir_data = "C:/Users/chris/Documents/Projects/Names/Data/clean/"
 # overall_data = pd.read_parquet(os.path.join(dir_data, 'name_overall_data.parquet'))
 # year_data = pd.read_parquet(os.path.join(dir_data, 'name_year_data.parquet'))
+
 overall_data = pd.read_parquet("https://github.com/stocksc/names/blob/master/Data/clean/name_overall_data.parquet?raw=true")
 year_data = pd.read_parquet("https://github.com/stocksc/names/blob/master/Data/clean/name_year_data.parquet?raw=true")
 
@@ -22,7 +23,7 @@ colors = {
 #########
 # Title #
 #########
-# Initialize
+
 if 'name' not in st.session_state:
     st.session_state.name = "Abby"
     st.session_state.eligible_text = ""
@@ -43,16 +44,16 @@ name = st.text_input(
 # Select random name
 def get_random_name():
     
-    # 2023 names (for popularity)
+    # 2023 data only for popularity
     eligible_names_year = year_data.loc[year_data['Year'] == 2023]
 
-    # Gender and popularity
+    # Gender (overall stats) and popularity (2023 stats)
     if male_or_female == "All Names":
         eligible_names_overall = overall_data
         eligible_names_year = eligible_names_year.loc[
             (
-                eligible_names_year['Rank_Female'].between(popularity_range_2023[0], popularity_range_2023[1]) | 
-                eligible_names_year['Rank_Male'].between(popularity_range_2023[0], popularity_range_2023[1]) 
+                eligible_names_year['Rank_Female'].between(rank_range_2023[0], rank_range_2023[1]) | 
+                eligible_names_year['Rank_Male'].between(rank_range_2023[0], rank_range_2023[1]) 
             )
         ]
     elif male_or_female == "Girls":
@@ -60,14 +61,14 @@ def get_random_name():
             (overall_data['Percent_Female'] > 0.8)
         ]
         eligible_names_year = eligible_names_year.loc[ 
-            (eligible_names_year['Rank_Female'].between(popularity_range_2023[0], popularity_range_2023[1]))
+            (eligible_names_year['Rank_Female'].between(rank_range_2023[0], rank_range_2023[1]))
         ]
     elif male_or_female == "Boys":
         eligible_names_overall = overall_data.loc[
             (overall_data['Percent_Female'] < 0.2)
         ]
         eligible_names_year = eligible_names_year.loc[ 
-            (eligible_names_year['Rank_Male'].between(popularity_range_2023[0], popularity_range_2023[1]))
+            (eligible_names_year['Rank_Male'].between(rank_range_2023[0], rank_range_2023[1]))
         ]
     elif male_or_female == "Gender Neutral":
         eligible_names_overall = overall_data.loc[
@@ -75,39 +76,39 @@ def get_random_name():
         ]
         eligible_names_year = eligible_names_year.loc[ 
             (
-                eligible_names_year['Rank_Female'].between(popularity_range_2023[0], popularity_range_2023[1]) | 
-                eligible_names_year['Rank_Male'].between(popularity_range_2023[0], popularity_range_2023[1]) 
+                eligible_names_year['Rank_Female'].between(rank_range_2023[0], rank_range_2023[1]) | 
+                eligible_names_year['Rank_Male'].between(rank_range_2023[0], rank_range_2023[1]) 
             )
         ]
-    else:
-        st.write("no")
+
     # Race
     eligible_names_overall = eligible_names_overall.loc[
         eligible_names_overall['White'].between(pct_white[0], pct_white[1])
     ]
 
+    # Final eligible list is intersection of eligibility based on yearly data and overall 
     eligible_names = pd.Series(list(set(eligible_names_year['Name']).intersection(set(eligible_names_overall['Name']))))
+    
+    # Catch if no names meet criteria
     if len(eligible_names) > 0:
         random_name = eligible_names.sample(1).values[0]
     else:
         random_name = "[No names meet those criteria]"
+    
     return random_name, eligible_names.shape[0]
 
+# Activates when generate random button is clicked
 def set_random_name():
     st.session_state.name = get_random_name()[0]
     st.session_state.eligible_text = f"Selecting from {get_random_name()[1]} eligible names."
 
-# Random options
+# Random selection options
 use_random = st.checkbox(label="Generate random name", value=False)
 if use_random: 
-    popularity_range_2023 = st.slider(
+    rank_range_2023 = st.slider(
         "Popularity Ranking (2023)", min_value=1, max_value=5000, value=(50, 500),
         help="Min and max rankings (inclusive). Uses either gender, unless Percent Female is set."
     )    
-    # popularity_range_all = st.slider(
-    #     "Popularity Ranking (since 1950)", min_value=1, max_value=5000, value=(1, 5000),
-    #     help="Min and max rankings (inclusive) for either boys or girls using all births since 1950."
-    # )
     pct_white = st.slider(
         "Percent White", min_value=0, max_value=100, value=(30,100),
         help="Share of births with that name that are non-Hispanic White."
@@ -119,49 +120,46 @@ if use_random:
     st.text(st.session_state.eligible_text)
     st.button("Randomize", on_click=set_random_name)
 
-
 # Make data for chosen name
 chosen_overall = overall_data.loc[overall_data['Name'] == name]
 chosen_year = year_data.loc[year_data['Name'] == name]
 
+st.title(f"{name}")
+
 ##############
 # Popularity #
 ##############
-st.title(f"{name}")
+
 st.subheader(f"Popularity")
 
-# Current Rank
 rank = {}
-for sex in ["Female", "Male"]:
-    rank[sex] = chosen_year.loc[chosen_year['Year']==2023, f'Rank_{sex}'].values[0].astype(int)
-
-# Rank since 1950
 rank_all = {}
-for sex in ["Female", "Male"]:
-    rank_all[sex] = chosen_overall[f'Rank_{sex}'].values[0].astype(int)
-
-# Peak rank (and year)
 peak_rank = {}
 peak_rank_year = {}
+growth = {}
+same_in_class = {}
+same_in_grade = {}
 for sex in ["Female", "Male"]:
+    # Current Rank
+    rank[sex] = chosen_year.loc[chosen_year['Year']==2023, f'Rank_{sex}'].values[0].astype(int)
+    
+    # Rank since 1950
+    rank_all[sex] = chosen_overall[f'Rank_{sex}'].values[0].astype(int)
+
+    # Peak rank (and year)
     peak_rank[sex] = chosen_year[f'Rank_{sex}'].min().astype(int)
     peak_rank_year[sex] = chosen_year.loc[chosen_year[f'Rank_{sex}'] == peak_rank[sex], 'Year'].values[0]
 
-# Growth in last 3 years
-growth = {}
-for sex in ["Female", "Male"]:
+    # Growth in last 3 years
     rate_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Rate_{sex}'].values[0]
     rate_past = chosen_year.loc[chosen_year['Year'] == 2020, f'Rate_{sex}'].values[0]
     growth[sex] = round((rate_now - rate_past) / rate_past * 100, 1)
 
-# Same name in class/grade
-same_in_class = {}
-same_in_grade = {}
-for sex in ["Female", "Male"]:
+    # Probability of same name in class/grade
     same_in_class[sex] = round(chosen_year.loc[chosen_year['Year']==2023, f'Pr_Same_In_Class_{sex}'].values[0], 1)
     same_in_grade[sex] = round(chosen_year.loc[chosen_year['Year']==2023, f'Pr_Same_In_Grade_{sex}'].values[0], 1)
 
-# Display
+# Display table
 st.markdown(f"""
 <table style='width:100%; table-layout:fixed;'>
     <tr>
@@ -190,12 +188,12 @@ st.markdown(f"""
         <td style='color:{colors["Male"]};'><strong>{growth["Male"]}%</strong></td>
     </tr>
     <tr>
-        <td>Prob Same Name in Class:</td>
+        <td>Prob Same Name in Class (25):</td>
         <td style='color:{colors["Female"]};'><strong>{same_in_class["Female"]}%</strong></td>
         <td style='color:{colors["Male"]};'><strong>{same_in_class["Male"]}%</strong></td>
     </tr>
     <tr>
-        <td>Prob Same Name in Grade:</td>
+        <td>Prob Same Name in Grade (100):</td>
         <td style='color:{colors["Female"]};'><strong>{same_in_grade["Female"]}%</strong></td>
         <td style='color:{colors["Male"]};'><strong>{same_in_grade["Male"]}%</strong></td>
     </tr>
@@ -210,6 +208,7 @@ year_data_with_references = year_data.loc[
     (year_data['Year'] >= year_range[0]) &
     (year_data['Year'] <= year_range[1])
 ]
+
 # Reference names 
 reference_names_checkboxes = st.multiselect(
     label="Reference names:",
@@ -217,7 +216,7 @@ reference_names_checkboxes = st.multiselect(
     default=[]
 )
 
-# Select which plots to show
+# Select which plots to show based on gender share
 female_chart = False
 male_chart = False
 female_share = chosen_overall['Percent_Female'].values[0]
@@ -262,21 +261,21 @@ elif female_chart:
 ##########
 # Gender #
 ##########
+
 st.subheader(f"Gender")
 
-# Share
 sex_share = {}
-for sex in ["Female", "Male"]:
-    sex_share[sex] = round(chosen_overall[f'Percent_{sex}'].values[0]*100,1)
-
-# Change in last 10 years
 share_change = {}
 for sex in ["Female", "Male"]:
+    # Share
+    sex_share[sex] = round(chosen_overall[f'Percent_{sex}'].values[0]*100,1)
+
+    # Change in last 10 years
     share_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Percent_{sex}'].values[0]
     share_past = chosen_year.loc[chosen_year['Year'] == 2013, f'Percent_{sex}'].values[0]
     share_change[sex] = round(share_now - share_past, 1)
 
-
+# Display descriptives
 col1, col2 = st.columns(2)
 with col1:
     sex = "Female"
@@ -287,12 +286,14 @@ with col2:
     st.write(f"{sex} Share: <span style='color:{colors[sex]}'>**{sex_share[sex]}%**", unsafe_allow_html=True)
     st.write(f"3yr Change: <span style='color:{colors[sex]}'>**{share_change[sex]}%**", unsafe_allow_html=True)
 
+# Plot data
 gender_plot_data = year_data.loc[
     (year_data['Name'] == name) & 
     (year_data['Year'] >= year_range[0]) &
     (year_data['Year'] <= year_range[1])
 ]
 
+# Stacked area chart
 pop_data_melted = gender_plot_data.melt(id_vars=['Year'], value_vars=['Percent_Female', 'Percent_Male'], var_name='Gender', value_name='Percentage')
 pop_data_melted['Gender'] = pop_data_melted['Gender'].map({'Percent_Female': 'Female', 'Percent_Male': 'Male'})
 
@@ -303,14 +304,16 @@ stacked_area_chart = alt.Chart(pop_data_melted).mark_area().encode(
 ).properties(
     height=220
 )
+
 st.altair_chart(stacked_area_chart, use_container_width=True)
 
 ################
 # Demographics #
 ################
+
 st.subheader(f"Demographics")
 
-colors = {
+demo_colors = {
     'White': '#B0B0B0',  # Softer grey
     'Black': '#66CDAA',  # Softer green
     'Hispanic': '#FFA07A',  # Lighter orange
@@ -318,24 +321,28 @@ colors = {
     'Other': '#87CEFA'  # Softer blue
 }
 
+# Data prep for table
 demo_data = chosen_overall[['White', 'Black', 'Hispanic', 'Asian', 'Other']]
 display_demo_data = demo_data.astype(str) + "%"
 display_demo_data.index = [name]
 
-# Create HTML table with colored values
+# Display table
 html_table = display_demo_data.T.to_html(escape=False)
-for group, color in colors.items():
+for group, color in demo_colors.items():
     html_table = html_table.replace(f'>{demo_data[group].values[0]}%', f' style="color: {color};"><b>{demo_data[group].values[0]}%')
     html_table = html_table.replace('<th>', '<th style="font-weight: normal;">')
     html_table = html_table.replace('<th style="text-align: right;">', '<th style="text-align: right; font-weight: normal;">')
+
+# Modify data for pie chart
 demo_data = demo_data.T
 demo_data.columns = ['Percentage']
 demo_data['Percentage'] = demo_data['Percentage'].astype(float)
-
 demo_data = demo_data.loc[['White', 'Black', 'Hispanic', 'Asian', 'Other']].reset_index()
+
+# Pie chart
 pie_chart = alt.Chart(demo_data).mark_arc().encode(
     theta=alt.Theta(field="Percentage", type="quantitative"),
-    color=alt.Color(field="index", type="nominal", scale=alt.Scale(domain=list(colors.keys()), range=list(colors.values())), title="Demographic"),
+    color=alt.Color(field="index", type="nominal", scale=alt.Scale(domain=list(demo_colors.keys()), range=list(demo_colors.values())), title="Demographic"),
     order=alt.Order('index', sort='ascending'),  # Ensure the order is maintained
     tooltip=['index', 'Percentage']
 ).properties(
