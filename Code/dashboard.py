@@ -153,7 +153,10 @@ for sex in ["Female", "Male"]:
     # Growth in last 3 years
     rate_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Rate_{sex}'].values[0]
     rate_past = chosen_year.loc[chosen_year['Year'] == 2020, f'Rate_{sex}'].values[0]
-    growth[sex] = round((rate_now - rate_past) / rate_past * 100, 1)
+    if pd.isna(rate_past):
+        growth[sex] = "N/A"
+    else:
+        growth[sex] = round((rate_now - rate_past) / rate_past * 100, 1)
 
     # Probability of same name in class/grade
     same_in_class[sex] = round(chosen_year.loc[chosen_year['Year']==2023, f'Pr_Same_In_Class_{sex}'].values[0], 1)
