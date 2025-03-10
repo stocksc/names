@@ -218,11 +218,6 @@ if st.session_state.login_status is not None:
                 <th style='width:25%; color:{colors["Male"]}; text-align: center;'>Male</th>
             </tr>
             <tr>
-                <td>Count (in 2023):</td>
-                <td style='color:{colors["Female"]};'><strong>{count["Female"]:,}</strong></td>
-                <td style='color:{colors["Male"]};'><strong>{count["Male"]:,}</strong></td>
-            </tr>
-            <tr>
                 <td>Rank (in 2023):</td>
                 <td style='color:{colors["Female"]};'><strong>{rank["Female"]:,}</strong></td>
                 <td style='color:{colors["Male"]};'><strong>{rank["Male"]:,}</strong></td>
@@ -251,6 +246,11 @@ if st.session_state.login_status is not None:
                 <td>Prob Same Name in Grade (100):</td>
                 <td style='color:{colors["Female"]};'><strong>{same_in_grade["Female"]}%</strong></td>
                 <td style='color:{colors["Male"]};'><strong>{same_in_grade["Male"]}%</strong></td>
+            </tr>
+            <tr>
+                <td>Count (in 2023):</td>
+                <td style='color:{colors["Female"]};'><strong>{count["Female"]:,}</strong></td>
+                <td style='color:{colors["Male"]};'><strong>{count["Male"]:,}</strong></td>
             </tr>
         </table>
         """, unsafe_allow_html=True)
@@ -427,3 +427,5 @@ if st.session_state.login_status is not None:
             ratings_compare['Min Rating'] = ratings_compare[['Rating', "Partner's Rating"]].min(axis=1)
             ratings_compare.sort_values('Min Rating', ascending=False, inplace=True)
             st.dataframe(ratings_compare, hide_index=True, width=400, use_container_width=False)
+
+# Add notes field?
