@@ -44,16 +44,16 @@ name = st.text_input(
 # Select random name
 def get_random_name():
     
-    # 2023 data only for popularity
-    eligible_names_year = year_data.loc[year_data['Year'] == 2023]
+    # 2024 data only for popularity
+    eligible_names_year = year_data.loc[year_data['Year'] == 2024]
 
-    # Gender (overall stats) and popularity (2023 stats)
+    # Gender (overall stats) and popularity (2024 stats)
     if male_or_female == "All Names":
         eligible_names_overall = overall_data
         eligible_names_year = eligible_names_year.loc[
             (
-                eligible_names_year['Rank_Female'].between(rank_range_2023[0], rank_range_2023[1]) | 
-                eligible_names_year['Rank_Male'].between(rank_range_2023[0], rank_range_2023[1]) 
+                eligible_names_year['Rank_Female'].between(rank_range_2024[0], rank_range_2024[1]) | 
+                eligible_names_year['Rank_Male'].between(rank_range_2024[0], rank_range_2024[1]) 
             )
         ]
     elif male_or_female == "Girls":
@@ -61,14 +61,14 @@ def get_random_name():
             (overall_data['Percent_Female'] > 0.8)
         ]
         eligible_names_year = eligible_names_year.loc[ 
-            (eligible_names_year['Rank_Female'].between(rank_range_2023[0], rank_range_2023[1]))
+            (eligible_names_year['Rank_Female'].between(rank_range_2024[0], rank_range_2024[1]))
         ]
     elif male_or_female == "Boys":
         eligible_names_overall = overall_data.loc[
             (overall_data['Percent_Female'] < 0.2)
         ]
         eligible_names_year = eligible_names_year.loc[ 
-            (eligible_names_year['Rank_Male'].between(rank_range_2023[0], rank_range_2023[1]))
+            (eligible_names_year['Rank_Male'].between(rank_range_2024[0], rank_range_2024[1]))
         ]
     elif male_or_female == "Gender Neutral":
         eligible_names_overall = overall_data.loc[
@@ -76,8 +76,8 @@ def get_random_name():
         ]
         eligible_names_year = eligible_names_year.loc[ 
             (
-                eligible_names_year['Rank_Female'].between(rank_range_2023[0], rank_range_2023[1]) | 
-                eligible_names_year['Rank_Male'].between(rank_range_2023[0], rank_range_2023[1]) 
+                eligible_names_year['Rank_Female'].between(rank_range_2024[0], rank_range_2024[1]) | 
+                eligible_names_year['Rank_Male'].between(rank_range_2024[0], rank_range_2024[1]) 
             )
         ]
 
@@ -105,8 +105,8 @@ def set_random_name():
 # Random selection options
 use_random = st.checkbox(label="Generate random name", value=False)
 if use_random: 
-    rank_range_2023 = st.slider(
-        "Popularity Ranking (2023)", min_value=1, max_value=5000, value=(50, 500),
+    rank_range_2024 = st.slider(
+        "Popularity Ranking (2024)", min_value=1, max_value=5000, value=(50, 500),
         help="Min and max rankings (inclusive). Uses either gender, unless Percent Female is set."
     )    
     pct_white = st.slider(
@@ -141,7 +141,7 @@ same_in_class = {}
 same_in_grade = {}
 for sex in ["Female", "Male"]:
     # Current Rank
-    rank[sex] = chosen_year.loc[chosen_year['Year']==2023, f'Rank_{sex}'].values[0].astype(int)
+    rank[sex] = chosen_year.loc[chosen_year['Year']==2024, f'Rank_{sex}'].values[0].astype(int)
     
     # Rank since 1950
     rank_all[sex] = chosen_overall[f'Rank_{sex}'].values[0].astype(int)
@@ -151,7 +151,7 @@ for sex in ["Female", "Male"]:
     peak_rank_year[sex] = chosen_year.loc[chosen_year[f'Rank_{sex}'] == peak_rank[sex], 'Year'].values[0]
 
     # Growth in last 3 years
-    rate_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Rate_{sex}'].values[0]
+    rate_now = chosen_year.loc[chosen_year['Year'] == 2024, f'Rate_{sex}'].values[0]
     rate_past = chosen_year.loc[chosen_year['Year'] == 2020, f'Rate_{sex}'].values[0]
     if rate_past == 0:
         growth[sex] = "N/A"
@@ -159,8 +159,8 @@ for sex in ["Female", "Male"]:
         growth[sex] = round((rate_now - rate_past) / rate_past * 100, 1)
 
     # Probability of same name in class/grade
-    same_in_class[sex] = round(chosen_year.loc[chosen_year['Year']==2023, f'Pr_Same_In_Class_{sex}'].values[0], 1)
-    same_in_grade[sex] = round(chosen_year.loc[chosen_year['Year']==2023, f'Pr_Same_In_Grade_{sex}'].values[0], 1)
+    same_in_class[sex] = round(chosen_year.loc[chosen_year['Year']==2024, f'Pr_Same_In_Class_{sex}'].values[0], 1)
+    same_in_grade[sex] = round(chosen_year.loc[chosen_year['Year']==2024, f'Pr_Same_In_Grade_{sex}'].values[0], 1)
 
 # Display table
 st.markdown(f"""
@@ -171,7 +171,7 @@ st.markdown(f"""
         <th style='width:25%; color:{colors["Male"]}; text-align: center;'>Male</th>
     </tr>
     <tr>
-        <td>Rank (in 2023):</td>
+        <td>Rank (in 2024):</td>
         <td style='color:{colors["Female"]};'><strong>{rank["Female"]:,}</strong></td>
         <td style='color:{colors["Male"]};'><strong>{rank["Male"]:,}</strong></td>
     </tr>
@@ -204,7 +204,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # Plot data
-year_range = (1950, 2023)
+year_range = (1950, 2024)
 reference_names = ['Christopher', 'Liam', 'Ezra', 'Jennifer', 'Lucy', 'Nora']
 year_data_with_references = year_data.loc[
     (year_data['Name'].isin([name]+reference_names)) & 
@@ -274,7 +274,7 @@ for sex in ["Female", "Male"]:
     sex_share[sex] = round(chosen_overall[f'Percent_{sex}'].values[0]*100,1)
 
     # Change in last 10 years
-    share_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Percent_{sex}'].values[0]
+    share_now = chosen_year.loc[chosen_year['Year'] == 2024, f'Percent_{sex}'].values[0]
     share_past = chosen_year.loc[chosen_year['Year'] == 2013, f'Percent_{sex}'].values[0]
     share_change[sex] = round(share_now - share_past, 1)
 

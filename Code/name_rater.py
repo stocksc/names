@@ -63,7 +63,7 @@ if st.session_state.login_status is None:
 
 overall_data = pd.read_parquet("https://github.com/stocksc/names/blob/master/Data/clean/name_overall_data.parquet?raw=true")
 year_data = pd.read_parquet("https://github.com/stocksc/names/blob/master/Data/clean/name_year_data.parquet?raw=true")
-year_data_2023 = year_data.loc[year_data['Year'] == 2023].sort_values(['Rank_Female'])
+year_data_2024 = year_data.loc[year_data['Year'] == 2024].sort_values(['Rank_Female'])
 
 def get_name():
     if manual_select != []:
@@ -72,8 +72,8 @@ def get_name():
         names_list = pd.DataFrame()
         return name, num_names, names_list
     else:
-        # Eligibility based on 2023 ranking and overall pct female
-        eligible_names_year = year_data_2023.loc[year_data_2023['Rank_Female'].between(min_rank_2023, max_rank_2023)]
+        # Eligibility based on 2024 ranking and overall pct female
+        eligible_names_year = year_data_2024.loc[year_data_2024['Rank_Female'].between(min_rank_2024, max_rank_2024)]
         eligible_names_overall = overall_data.loc[overall_data['Percent_Female'].between(female_pct_range[0]/100, female_pct_range[1]/100)]
         eligible_names = pd.merge(
             eligible_names_year[['Name', 'Rank_Female', 'Count_Female']], 
@@ -93,13 +93,13 @@ def get_name():
 if st.session_state.login_status is not None:
     c1, c2, c3 = st.columns(3)
     with c1:
-        min_rank_2023 = st.number_input("Minimum Female rank in 2023", min_value=1, value=1, step=100)
+        min_rank_2024 = st.number_input("Minimum Female rank in 2024", min_value=1, value=1, step=100)
     with c2:
-        max_rank_2023 = st.number_input("Maximum Female rank in 2023", min_value=1, value=10000, step=100)
+        max_rank_2024 = st.number_input("Maximum Female rank in 2024", min_value=1, value=10000, step=100)
     with c3:
         female_pct_range = st.slider("Percent Female (since 1950)", min_value=0, max_value=100, value=(20, 100))
     manual_select = st.multiselect(
-        "Manually choose a name", year_data_2023['Name'].values, max_selections=1
+        "Manually choose a name", year_data_2024['Name'].values, max_selections=1
     )
 
 ###########
@@ -185,10 +185,10 @@ if st.session_state.login_status is not None:
         same_in_grade = {}
         for sex in ["Female", "Male"]:
             # Current Count
-            count[sex] = chosen_year.loc[chosen_year['Year']==2023, f'Count_{sex}'].values[0].astype(int)
+            count[sex] = chosen_year.loc[chosen_year['Year']==2024, f'Count_{sex}'].values[0].astype(int)
             
             # Current Rank
-            rank[sex] = chosen_year.loc[chosen_year['Year']==2023, f'Rank_{sex}'].values[0].astype(int)
+            rank[sex] = chosen_year.loc[chosen_year['Year']==2024, f'Rank_{sex}'].values[0].astype(int)
             
             # Rank since 1950
             rank_all[sex] = chosen_overall[f'Rank_{sex}'].values[0].astype(int)
@@ -198,7 +198,7 @@ if st.session_state.login_status is not None:
             peak_rank_year[sex] = chosen_year.loc[chosen_year[f'Rank_{sex}'] == peak_rank[sex], 'Year'].values[0]
 
             # Growth in last 3 years
-            rate_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Rate_{sex}'].values[0]
+            rate_now = chosen_year.loc[chosen_year['Year'] == 2024, f'Rate_{sex}'].values[0]
             rate_past = chosen_year.loc[chosen_year['Year'] == 2020, f'Rate_{sex}'].values[0]
             if rate_past == 0:
                 growth[sex] = "N/A"
@@ -206,8 +206,8 @@ if st.session_state.login_status is not None:
                 growth[sex] = round((rate_now - rate_past) / rate_past * 100, 1)
 
             # Probability of same name in class/grade
-            same_in_class[sex] = round(chosen_year.loc[chosen_year['Year']==2023, f'Pr_Same_In_Class_{sex}'].values[0]/2, 1)
-            same_in_grade[sex] = round(chosen_year.loc[chosen_year['Year']==2023, f'Pr_Same_In_Grade_{sex}'].values[0]/2, 1)
+            same_in_class[sex] = round(chosen_year.loc[chosen_year['Year']==2024, f'Pr_Same_In_Class_{sex}'].values[0]/2, 1)
+            same_in_grade[sex] = round(chosen_year.loc[chosen_year['Year']==2024, f'Pr_Same_In_Grade_{sex}'].values[0]/2, 1)
 
         # Display table
         st.markdown(f"""
@@ -218,7 +218,7 @@ if st.session_state.login_status is not None:
                 <th style='width:25%; color:{colors["Male"]}; text-align: center;'>Male</th>
             </tr>
             <tr>
-                <td>Rank (in 2023):</td>
+                <td>Rank (in 2024):</td>
                 <td style='color:{colors["Female"]};'><strong>{rank["Female"]:,}</strong></td>
                 <td style='color:{colors["Male"]};'><strong>{rank["Male"]:,}</strong></td>
             </tr>
@@ -248,7 +248,7 @@ if st.session_state.login_status is not None:
                 <td style='color:{colors["Male"]};'><strong>{same_in_grade["Male"]}%</strong></td>
             </tr>
             <tr>
-                <td>Count (in 2023):</td>
+                <td>Count (in 2024):</td>
                 <td style='color:{colors["Female"]};'><strong>{count["Female"]:,}</strong></td>
                 <td style='color:{colors["Male"]};'><strong>{count["Male"]:,}</strong></td>
             </tr>
@@ -261,7 +261,7 @@ if st.session_state.login_status is not None:
     popularity_plot = st.checkbox("View popularity plot")
     if popularity_plot:
         # Plot data
-        year_range = (1950, 2023)
+        year_range = (1950, 2024)
         reference_names = ['Jennifer', 'Lucy', 'Nora']
         year_data_with_references = year_data.loc[
             (year_data['Name'].isin([st.session_state.name]+reference_names)) & 
@@ -293,7 +293,7 @@ if st.session_state.login_status is not None:
     if gender_plot:
         chosen_overall = overall_data.loc[overall_data['Name'] == st.session_state.name]
         chosen_year = year_data.loc[year_data['Name'] == st.session_state.name]
-        year_range = (1950, 2023)
+        year_range = (1950, 2024)
 
         sex_share = {}
         share_change = {}
@@ -302,7 +302,7 @@ if st.session_state.login_status is not None:
             sex_share[sex] = round(chosen_overall[f'Percent_{sex}'].values[0]*100,1)
 
             # Change in last 10 years
-            share_now = chosen_year.loc[chosen_year['Year'] == 2023, f'Percent_{sex}'].values[0]
+            share_now = chosen_year.loc[chosen_year['Year'] == 2024, f'Percent_{sex}'].values[0]
             share_past = chosen_year.loc[chosen_year['Year'] == 2013, f'Percent_{sex}'].values[0]
             share_change[sex] = round(share_now - share_past, 1)
 
